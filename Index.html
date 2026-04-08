@@ -3,90 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Limpeza Vetmax - Cronograma</title>
+    <title>VETMAX - Gestão de Limpeza</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <style>
-        :root { --fc-border-color: #e2e8f0; --fc-button-bg-color: #3b82f6; }
-        .fc-event { cursor: pointer; border: none; padding: 2px; }
+        :root { --fc-border-color: #e2e8f0; --fc-button-bg-color: #0891b2; }
+        .fc-event { cursor: pointer; border: none; padding: 3px; font-size: 0.85em; }
+        .fc-toolbar-title { font-size: 1.2rem !important; font-weight: bold; text-transform: capitalize; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-slate-50 text-slate-800">
 
-    <nav class="bg-blue-600 p-4 text-white shadow-lg mb-6">
+    <nav class="bg-cyan-700 p-4 text-white shadow-xl mb-6">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">🐾 VetClean Pro</h1>
-            <div class="space-x-4">
-                <button onclick="switchTab('consulta')" class="hover:underline">Consulta</button>
-                <button onclick="switchTab('lancamento')" class="bg-white text-blue-600 px-4 py-1 rounded shadow">Lançar Atividade</button>
+            <h1 class="text-2xl font-black tracking-tighter">VET<span class="text-cyan-300">MAX</span></h1>
+            <div class="space-x-3">
+                <button onclick="switchTab('consulta')" class="text-sm font-medium hover:text-cyan-200">Painel de Consulta</button>
+                <button onclick="switchTab('lancamento')" class="bg-white text-cyan-700 px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-cyan-50">New +</button>
             </div>
         </div>
     </nav>
 
     <main class="container mx-auto p-4">
         
-        <section id="tab-consulta" class="bg-white p-6 rounded-xl shadow-md">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-semibold text-gray-700">Cronograma de Limpeza</h2>
-                <div class="flex gap-2">
-                    <span class="flex items-center text-xs"><span class="w-3 h-3 bg-yellow-500 rounded-full mr-1"></span> Pendente</span>
-                    <span class="flex items-center text-xs"><span class="w-3 h-3 bg-green-500 rounded-full mr-1"></span> Concluído</span>
+        <section id="tab-consulta" class="bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-700">Cronograma Operacional</h2>
+                    <p class="text-sm text-slate-500">Clique em uma tarefa para alternar o status (Pendente/Concluído)</p>
+                </div>
+                <div class="flex gap-4">
+                    <span class="flex items-center text-xs font-semibold"><span class="w-3 h-3 bg-amber-500 rounded-full mr-2"></span> PENDENTE</span>
+                    <span class="flex items-center text-xs font-semibold"><span class="w-3 h-3 bg-emerald-500 rounded-full mr-2"></span> CONCLUÍDO</span>
                 </div>
             </div>
             <div id="calendar"></div>
         </section>
 
-        <section id="tab-lancamento" class="hidden max-w-lg mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-100">
-            <h2 class="text-2xl font-semibold mb-6 text-blue-600 text-center">Registrar Limpeza</h2>
-            <form id="limpezaForm" class="space-y-4">
+        <section id="tab-lancamento" class="hidden max-w-xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-slate-100">
+            <h2 class="text-2xl font-bold mb-6 text-cyan-700">Lançar Nova Atividade</h2>
+            <form id="limpezaForm" class="space-y-5">
                 <div>
-                    <label class="block text-sm font-medium">Ambiente/Tarefa</label>
-                    <input type="text" id="taskTitle" placeholder="Ex: Higienização Canil A" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" required>
+                    <label class="block text-sm font-semibold mb-1">O que precisa ser limpo?</label>
+                    <input type="text" id="taskTitle" placeholder="Ex: Higienização Sala de Raio-X" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none" required>
                 </div>
+                
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium">Início</label>
-                        <input type="datetime-local" id="taskStart" class="w-full p-2 border rounded-lg" required>
+                        <label class="block text-sm font-semibold mb-1">Início</label>
+                        <input type="datetime-local" id="taskStart" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" required>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium">Fim (Estimado)</label>
-                        <input type="datetime-local" id="taskEnd" class="w-full p-2 border rounded-lg" required>
+                        <label class="block text-sm font-semibold mb-1">Fim</label>
+                        <input type="datetime-local" id="taskEnd" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl" required>
                     </div>
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium">Responsável</label>
-                    <input type="text" id="taskUser" placeholder="Nome do funcionário" class="w-full p-2 border rounded-lg">
+                    <label class="block text-sm font-semibold mb-2 text-slate-600">Repetir Semanalmente:</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <label class="flex items-center gap-1 text-xs bg-slate-100 p-2 rounded-lg cursor-pointer hover:bg-slate-200">
+                            <input type="checkbox" name="dow" value="1"> Seg
+                        </label>
+                        <label class="flex items-center gap-1 text-xs bg-slate-100 p-2 rounded-lg cursor-pointer hover:bg-slate-200">
+                            <input type="checkbox" name="dow" value="2"> Ter
+                        </label>
+                        <label class="flex items-center gap-1 text-xs bg-slate-100 p-2 rounded-lg cursor-pointer hover:bg-slate-200">
+                            <input type="checkbox" name="dow" value="3"> Qua
+                        </label>
+                        <label class="flex items-center gap-1 text-xs bg-slate-100 p-2 rounded-lg cursor-pointer hover:bg-slate-200">
+                            <input type="checkbox" name="dow" value="4"> Qui
+                        </label>
+                        <label class="flex items-center gap-1 text-xs bg-slate-100 p-2 rounded-lg cursor-pointer hover:bg-slate-200">
+                            <input type="checkbox" name="dow" value="5"> Sex
+                        </label>
+                        <label class="flex items-center gap-1 text-xs bg-slate-100 p-2 rounded-lg cursor-pointer hover:bg-slate-200">
+                            <input type="checkbox" name="dow" value="6"> Sab
+                        </label>
+                    </div>
                 </div>
+
                 <div class="flex gap-4 pt-4">
-                    <button type="button" onclick="switchTab('consulta')" class="flex-1 py-2 bg-gray-200 rounded-lg font-medium">Cancelar</button>
-                    <button type="submit" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold shadow-lg hover:bg-blue-700 transition">Salvar no Sistema</button>
+                    <button type="button" onclick="switchTab('consulta')" class="flex-1 py-3 bg-slate-100 rounded-xl font-bold hover:bg-slate-200 transition">Voltar</button>
+                    <button type="submit" class="flex-1 py-3 bg-cyan-600 text-white rounded-xl font-bold shadow-lg hover:bg-cyan-700 transition">Salvar Atividade</button>
                 </div>
             </form>
         </section>
-
     </main>
 
     <script>
         let calendar;
-        const storageKey = 'vet_limpeza_events';
+        const storageKey = 'vetmax_events_v1';
+
+        // DADOS FICTÍCIOS INICIAIS
+        const defaultEvents = [
+            { id: 'f1', title: '🧹 Limpeza Consultório 1', start: new Date().toISOString().split('T')[0] + 'T08:00', end: new Date().toISOString().split('T')[0] + 'T08:30', backgroundColor: '#f59e0b' },
+            { id: 'f2', title: '🧼 Desinfecção Centro Cirúrgico', start: new Date().toISOString().split('T')[0] + 'T12:00', end: new Date().toISOString().split('T')[0] + 'T13:30', backgroundColor: '#10b981' },
+            { id: 'f3', title: '🐕 Limpeza Canil Principal', daysOfWeek: [1, 3, 5], startTime: '07:00', endTime: '09:00', backgroundColor: '#f59e0b' },
+            { id: 'f4', title: '🚿 Higienização Banho e Tosa', daysOfWeek: [2, 4, 6], startTime: '18:00', endTime: '19:00', backgroundColor: '#f59e0b' }
+        ];
 
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             
+            // Carrega do LocalStorage ou usa os fictícios se estiver vazio
+            const savedEvents = JSON.parse(localStorage.getItem(storageKey));
+            const initialEvents = (savedEvents && savedEvents.length > 0) ? savedEvents : defaultEvents;
+
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'pt-br',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia' },
-                events: JSON.parse(localStorage.getItem(storageKey)) || [],
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+                events: initialEvents,
                 eventClick: function(info) {
-                    if (confirm(`Deseja marcar "${info.event.title}" como CONCLUÍDO?`)) {
-                        info.event.setProp('backgroundColor', '#10b981'); // Verde
+                    const status = info.event.backgroundColor === '#10b981' ? 'PENDENTE' : 'CONCLUÍDO';
+                    if (confirm(`Mudar status de "${info.event.title}" para ${status}?`)) {
+                        const newColor = info.event.backgroundColor === '#10b981' ? '#f59e0b' : '#10b981';
+                        info.event.setProp('backgroundColor', newColor);
                         updateStorage();
                     }
                 }
@@ -94,40 +128,48 @@
             calendar.render();
         });
 
-        // Alternar abas
         function switchTab(tab) {
             document.getElementById('tab-consulta').classList.toggle('hidden', tab !== 'consulta');
             document.getElementById('tab-lancamento').classList.toggle('hidden', tab !== 'lancamento');
-            if(tab === 'consulta') calendar.render(); // Re-renderiza para ajustar tamanho
+            if(tab === 'consulta') {
+                setTimeout(() => calendar.render(), 10);
+            }
         }
 
-        // Formulário de Cadastro
         document.getElementById('limpezaForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const dows = Array.from(document.querySelectorAll('input[name="dow"]:checked')).map(el => el.value);
             
             const newEvent = {
                 id: Date.now().toString(),
                 title: document.getElementById('taskTitle').value,
-                start: document.getElementById('taskStart').value,
-                end: document.getElementById('taskEnd').value,
-                backgroundColor: '#f59e0b', // Amarelo (Pendente)
-                extendedProps: { responsavel: document.getElementById('taskUser').value }
+                backgroundColor: '#f59e0b'
             };
+
+            if (dows.length > 0) {
+                // Se for recorrente, extrai apenas a hora do input datetime-local
+                newEvent.daysOfWeek = dows;
+                newEvent.startTime = document.getElementById('taskStart').value.split('T')[1];
+                newEvent.endTime = document.getElementById('taskEnd').value.split('T')[1];
+            } else {
+                newEvent.start = document.getElementById('taskStart').value;
+                newEvent.end = document.getElementById('taskEnd').value;
+            }
 
             calendar.addEvent(newEvent);
             updateStorage();
             this.reset();
             switchTab('consulta');
-            alert('Atividade lançada com sucesso!');
         });
 
-        // Sincronizar com LocalStorage
         function updateStorage() {
             const events = calendar.getEvents().map(e => ({
                 id: e.id,
                 title: e.title,
                 start: e.startStr,
                 end: e.endStr,
+                daysOfWeek: e.allDay ? null : e._def.recurringDef?.typeData?.daysOfWeek,
+                startTime: e._def.recurringDef?.typeData?.startTime?.wholeS / 3600, // Simplificado
                 backgroundColor: e.backgroundColor
             }));
             localStorage.setItem(storageKey, JSON.stringify(events));

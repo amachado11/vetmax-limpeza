@@ -3,36 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VETMAX - Cronograma de Limpeza</title>
+    <title>VETMAX - Cronograma</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <style>
+        /* CONFIGURAÇÃO AUTOMÁTICA DE IMPRESSÃO */
+        @page { 
+            size: landscape; /* Sugere automaticamente o modo Paisagem (Horizontal) */
+            margin: 1cm;
+        }
+
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .fc-event { background-color: #f1f5f9 !important; border: 1px solid #000 !important; color: black !important; opacity: 1 !important; }
-            .container { width: 100% !important; max-width: none !important; }
+            
+            .container { width: 100% !important; max-width: none !important; margin: 0 !important; padding: 0 !important; }
+            
+            /* Remove botões e deixa apenas o título na impressão */
+            .fc-header-toolbar { margin-bottom: 5px !important; }
+            .fc-button-group, .fc-timeGridWeek-button, .fc-dayGridMonth-button { display: none !important; }
+            
+            /* Estilo das tarefas para máxima legibilidade no papel */
+            .fc-event { 
+                background-color: #f1f5f9 !important; 
+                border: 2px solid #000 !important; 
+                color: #000 !important; 
+                font-size: 12px !important; /* Fonte maior para o papel */
+                font-weight: 900 !important;
+                padding: 4px !important;
+            }
+            .fc-timegrid-slot { height: 50px !important; } /* Aumenta a altura das linhas */
+            .fc-col-header-cell { background-color: #f8fafc !important; color: black !important; }
         }
+
         :root { --fc-border-color: #cbd5e1; }
-        .fc-toolbar-title { font-weight: 800; color: #334155; text-transform: capitalize; }
-        .fc-event { padding: 4px; font-weight: bold; cursor: pointer; border: 1px solid #94a3b8; transition: transform 0.1s; }
-        .fc-event:hover { transform: scale(1.02); }
+        .fc-toolbar-title { font-weight: 900; color: #1e293b; text-transform: uppercase; letter-spacing: -0.025em; }
+        .fc-event { padding: 4px; font-weight: bold; cursor: pointer; border: 1px solid #94a3b8; }
+        .fc-timegrid-slot { height: 3.5em !important; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900">
 
     <header class="no-print bg-slate-800 text-white p-6 shadow-md">
         <div class="container mx-auto">
-            <h1 class="text-2xl font-black mb-4 tracking-tight uppercase italic">VET<span class="text-cyan-400">MAX</span></h1>
+            <h1 class="text-2xl font-black mb-4 tracking-tighter uppercase italic">VET<span class="text-cyan-400">MAX</span></h1>
             
-            <form id="taskForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-700 p-4 rounded-xl border border-slate-600">
-                <input type="hidden" id="editId"> <div class="md:col-span-2">
-                    <label class="block text-[10px] font-bold mb-1 uppercase text-slate-400">Ambiente / Sala</label>
+            <form id="taskForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-700 p-4 rounded-xl border border-slate-600 text-left">
+                <input type="hidden" id="editId">
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] font-bold mb-1 uppercase text-slate-400 font-mono">Ambiente / Sala</label>
                     <input type="text" id="title" placeholder="Ex: Higienização Consultório" class="w-full p-2 rounded bg-slate-800 border border-slate-500 text-white outline-none focus:border-cyan-400" required>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold mb-1 uppercase text-slate-400">Horário (Início - Fim)</label>
+                    <label class="block text-[10px] font-bold mb-1 uppercase text-slate-400 font-mono">Horário</label>
                     <div class="flex gap-1">
                         <input type="time" id="start" class="w-full p-2 rounded bg-slate-800 border border-slate-500 text-white" required>
                         <input type="time" id="end" class="w-full p-2 rounded bg-slate-800 border border-slate-500 text-white" required>
@@ -40,112 +64,88 @@
                 </div>
                 <div class="flex items-end gap-2">
                     <button type="submit" id="btnSubmit" class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black py-2 rounded transition">SALVAR</button>
-                    <button type="button" id="btnCancel" onclick="resetForm()" class="hidden flex-1 bg-slate-500 hover:bg-slate-400 text-white font-black py-2 rounded transition">CANCELAR</button>
+                    <button type="button" id="btnCancel" onclick="resetForm()" class="hidden flex-1 bg-slate-500 hover:bg-slate-400 text-white font-black py-2 rounded transition">X</button>
                 </div>
-                
                 <div class="md:col-span-4 flex flex-wrap gap-4 mt-2 border-t border-slate-600 pt-3">
-                    <span class="text-[10px] font-black text-slate-400 uppercase">Repetir semanalmente em:</span>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="1"> Seg</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="2"> Ter</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="3"> Qua</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="4"> Qui</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="5"> Sex</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="6"> Sáb</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="0"> Dom</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="1"> SEG</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="2"> TER</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="3"> QUA</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="4"> QUI</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="5"> SEX</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="6"> SÁB</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="0"> DOM</label>
                 </div>
             </form>
         </div>
     </header>
 
     <main class="container mx-auto p-4">
-        <div class="flex justify-between items-center mb-4 no-print">
+        <div class="flex justify-between items-end mb-4 no-print">
             <div>
-                <h2 class="font-bold text-slate-700">Cronograma de Atividades</h2>
-                <p class="text-xs text-slate-500">Clique na tarefa para <span class="text-blue-600 font-bold uppercase">Editar</span> ou excluir.</p>
+                <h2 class="font-black text-slate-800 text-xl">Cronograma Semanal</h2>
+                <p class="text-xs text-slate-500">Clique na tarefa para <span class="font-bold text-blue-600">EDITAR</span> ou <span class="font-bold text-red-500">REMOVER</span>.</p>
             </div>
-            <button onclick="window.print()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-black shadow-lg hover:bg-blue-700 transition flex items-center gap-2">
-                <span>🖨️</span> IMPRIMIR
+            <button onclick="window.print()" class="bg-blue-600 text-white px-10 py-4 rounded-xl font-black shadow-xl hover:bg-blue-700 transition flex items-center gap-3 active:scale-95">
+                <span class="text-xl">🖨️</span> GERAR CRONOGRAMA A4
             </button>
         </div>
 
-        <div class="bg-white p-4 rounded-xl shadow-xl border border-slate-200">
+        <div class="bg-white p-4 rounded-2xl shadow-2xl border border-slate-200">
             <div id="calendar"></div>
         </div>
     </main>
 
     <script>
         let calendar;
-        const storageKey = 'vetmax_editable_v1';
+        const storageKey = 'vetmax_print_v3';
 
-        // DADOS FICTÍCIOS INICIAIS
         const dummyEvents = [
-            { id: '1', title: '🧹 Limpeza Geral Recepção', startTime: '07:30', endTime: '08:30', daysOfWeek: [1,2,3,4,5,6], backgroundColor: '#f1f5f9', textColor: '#000', borderColor: '#000' },
-            { id: '2', title: '🧼 Esterilização Centro Cirúrgico', startTime: '11:00', endTime: '12:30', daysOfWeek: [1,3,5], backgroundColor: '#f1f5f9', textColor: '#000', borderColor: '#000' },
-            { id: '3', title: '🐕 Higienização Canis', startTime: '09:00', endTime: '10:30', daysOfWeek: [1,2,3,4,5], backgroundColor: '#f1f5f9', textColor: '#000', borderColor: '#000' },
-            { id: '4', title: '🧪 Limpeza Laboratório', startTime: '14:00', endTime: '15:00', daysOfWeek: [2,4], backgroundColor: '#f1f5f9', textColor: '#000', borderColor: '#000' }
+            { id: '1', title: '🧹 Limpeza Geral Recepção', startTime: '07:30', endTime: '08:30', daysOfWeek: [1,2,3,4,5,6], backgroundColor: '#f8fafc', textColor: '#000', borderColor: '#000' },
+            { id: '2', title: '🧼 Centro Cirúrgico', startTime: '11:00', endTime: '12:30', daysOfWeek: [1,3,5], backgroundColor: '#f8fafc', textColor: '#000', borderColor: '#000' },
+            { id: '3', title: '🐕 Higienização Canis', startTime: '08:30', endTime: '10:00', daysOfWeek: [1,2,3,4,5,6], backgroundColor: '#f8fafc', textColor: '#000', borderColor: '#000' }
         ];
 
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             const savedData = JSON.parse(localStorage.getItem(storageKey));
             
-            const initialEvents = (savedData && savedData.length > 0) ? savedData : dummyEvents;
-
             calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek',
+                initialView: 'timeGridWeek', 
                 locale: 'pt-br',
                 slotMinTime: '07:00:00',
                 slotMaxTime: '21:00:00',
                 allDaySlot: false,
                 height: 'auto',
                 headerToolbar: { left: '', center: 'title', right: 'timeGridWeek,dayGridMonth' },
-                events: initialEvents,
-                eventClick: function(info) {
-                    handleEventClick(info.event);
-                }
+                events: (savedData && savedData.length > 0) ? savedData : dummyEvents,
+                eventClick: function(info) { handleEventClick(info.event); }
             });
             calendar.render();
         });
 
         function handleEventClick(event) {
             const action = confirm(`"${event.title}"\n\nOK - Editar esta tarefa\nCancelar - Excluir esta tarefa`);
-            
             if (action) {
-                // MODO EDIÇÃO
                 document.getElementById('editId').value = event.id;
                 document.getElementById('title').value = event.title;
-                
-                // Extrair horários
-                const start = event._def.recurringDef?.typeData?.startTime ? 
-                              new Date(event._def.recurringDef.typeData.startTime.milliseconds).toISOString().substr(11, 5) : "08:00";
-                const end = event._def.recurringDef?.typeData?.endTime ? 
-                            new Date(event._def.recurringDef.typeData.endTime.milliseconds).toISOString().substr(11, 5) : "09:00";
-                
+                const start = event._def.recurringDef?.typeData?.startTime ? new Date(event._def.recurringDef.typeData.startTime.milliseconds).toISOString().substr(11, 5) : "08:00";
+                const end = event._def.recurringDef?.typeData?.endTime ? new Date(event._def.recurringDef.typeData.endTime.milliseconds).toISOString().substr(11, 5) : "09:00";
                 document.getElementById('start').value = start;
                 document.getElementById('end').value = end;
-
-                // Marcar checkboxes
                 const dows = event._def.recurringDef?.typeData?.daysOfWeek || [];
-                document.querySelectorAll('input[name="dow"]').forEach(cb => {
-                    cb.checked = dows.includes(parseInt(cb.value));
-                });
-
-                document.getElementById('btnSubmit').innerText = "ATUALIZAR";
+                document.querySelectorAll('input[name="dow"]').forEach(cb => cb.checked = dows.includes(parseInt(cb.value)));
+                document.getElementById('btnSubmit').innerText = "OK";
                 document.getElementById('btnCancel').classList.remove('hidden');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
-                // EXCLUSÃO
-                if(confirm("Tem certeza que deseja excluir permanentemente?")) {
-                    event.remove();
-                    save();
-                }
+                if(confirm("Excluir definitivamente?")) { event.remove(); save(); }
             }
         }
 
         function resetForm() {
             document.getElementById('taskForm').reset();
             document.getElementById('editId').value = "";
-            document.getElementById('btnSubmit').innerText = "ADICIONAR";
+            document.getElementById('btnSubmit').innerText = "SALVAR";
             document.getElementById('btnCancel').classList.add('hidden');
         }
 
@@ -153,23 +153,15 @@
             e.preventDefault();
             const editId = document.getElementById('editId').value;
             const dows = Array.from(document.querySelectorAll('input[name="dow"]:checked')).map(el => parseInt(el.value));
-            
             const eventData = {
                 id: editId || Date.now().toString(),
                 title: document.getElementById('title').value,
                 startTime: document.getElementById('start').value,
                 endTime: document.getElementById('end').value,
-                backgroundColor: '#f1f5f9',
-                textColor: '#000000',
-                borderColor: '#000000',
+                backgroundColor: '#f8fafc', textColor: '#000', borderColor: '#000',
                 daysOfWeek: dows.length > 0 ? dows : [new Date().getDay()]
             };
-
-            if (editId) {
-                const oldEvent = calendar.getEventById(editId);
-                if (oldEvent) oldEvent.remove();
-            }
-
+            if (editId) { const old = calendar.getEventById(editId); if (old) old.remove(); }
             calendar.addEvent(eventData);
             save();
             resetForm();
@@ -177,15 +169,11 @@
 
         function save() {
             const events = calendar.getEvents().map(e => ({
-                id: e.id,
-                title: e.title,
-                startTime: e._def.recurringDef?.typeData?.startTime ? 
-                           new Date(e._def.recurringDef.typeData.startTime.milliseconds).toISOString().substr(11, 5) : "08:00",
-                endTime: e._def.recurringDef?.typeData?.endTime ? 
-                         new Date(e._def.recurringDef.typeData.endTime.milliseconds).toISOString().substr(11, 5) : "09:00",
+                id: e.id, title: e.title,
+                startTime: e._def.recurringDef?.typeData?.startTime ? new Date(e._def.recurringDef.typeData.startTime.milliseconds).toISOString().substr(11, 5) : "08:00",
+                endTime: e._def.recurringDef?.typeData?.endTime ? new Date(e._def.recurringDef.typeData.endTime.milliseconds).toISOString().substr(11, 5) : "09:00",
                 daysOfWeek: e._def.recurringDef?.typeData?.daysOfWeek || null,
-                backgroundColor: '#f1f5f9',
-                textColor: '#000000'
+                backgroundColor: '#f8fafc', textColor: '#000'
             }));
             localStorage.setItem(storageKey, JSON.stringify(events));
         }

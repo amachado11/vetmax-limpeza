@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpeza Vet - Cronograma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <style>
+        :root { --fc-border-color: #e2e8f0; --fc-button-bg-color: #3b82f6; }
+        .fc-event { cursor: pointer; border: none; padding: 2px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <nav class="bg-blue-600 p-4 text-white shadow-lg mb-6">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">🐾 VetClean Pro</h1>
+            <div class="space-x-4">
+                <button onclick="switchTab('consulta')" class="hover:underline">Consulta</button>
+                <button onclick="switchTab('lancamento')" class="bg-white text-blue-600 px-4 py-1 rounded shadow">Lançar Atividade</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4">
+        
+        <section id="tab-consulta" class="bg-white p-6 rounded-xl shadow-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-gray-700">Cronograma de Limpeza</h2>
+                <div class="flex gap-2">
+                    <span class="flex items-center text-xs"><span class="w-3 h-3 bg-yellow-500 rounded-full mr-1"></span> Pendente</span>
+                    <span class="flex items-center text-xs"><span class="w-3 h-3 bg-green-500 rounded-full mr-1"></span> Concluído</span>
+                </div>
+            </div>
+            <div id="calendar"></div>
+        </section>
+
+        <section id="tab-lancamento" class="hidden max-w-lg mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-100">
+            <h2 class="text-2xl font-semibold mb-6 text-blue-600 text-center">Registrar Limpeza</h2>
+            <form id="limpezaForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">Ambiente/Tarefa</label>
+                    <input type="text" id="taskTitle" placeholder="Ex: Higienização Canil A" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium">Início</label>
+                        <input type="datetime-local" id="taskStart" class="w-full p-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Fim (Estimado)</label>
+                        <input type="datetime-local" id="taskEnd" class="w-full p-2 border rounded-lg" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Responsável</label>
+                    <input type="text" id="taskUser" placeholder="Nome do funcionário" class="w-full p-2 border rounded-lg">
+                </div>
+                <div class="flex gap-4 pt-4">
+                    <button type="button" onclick="switchTab('consulta')" class="flex-1 py-2 bg-gray-200 rounded-lg font-medium">Cancelar</button>
+                    <button type="submit" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold shadow-lg hover:bg-blue-700 transition">Salvar no Sistema</button>
+                </div>
+            </form>
+        </section>
+
+    </main>
+
+    <script>
+        let calendar;
+        const storageKey = 'vet_limpeza_events';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia' },
+                events: JSON.parse(localStorage.getItem(storageKey)) || [],
+                eventClick: function(info) {
+                    if (confirm(`Deseja marcar "${info.event.title}" como CONCLUÍDO?`)) {
+                        info.event.setProp('backgroundColor', '#10b981'); // Verde
+                        updateStorage();
+                    }
+                }
+            });
+            calendar.render();
+        });
+
+        // Alternar abas
+        function switchTab(tab) {
+            document.getElementById('tab-consulta').classList.toggle('hidden', tab !== 'consulta');
+            document.getElementById('tab-lancamento').classList.toggle('hidden', tab !== 'lancamento');
+            if(tab === 'consulta') calendar.render(); // Re-renderiza para ajustar tamanho
+        }
+
+        // Formulário de Cadastro
+        document.getElementById('limpezaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newEvent = {
+                id: Date.now().toString(),
+                title: document.getElementById('taskTitle').value,
+                start: document.getElementById('taskStart').value,
+                end: document.getElementById('taskEnd').value,
+                backgroundColor: '#f59e0b', // Amarelo (Pendente)
+                extendedProps: { responsavel: document.getElementById('taskUser').value }
+            };
+
+            calendar.addEvent(newEvent);
+            updateStorage();
+            this.reset();
+            switchTab('consulta');
+            alert('Atividade lançada com sucesso!');
+        });
+
+        // Sincronizar com LocalStorage
+        function updateStorage() {
+            const events = calendar.getEvents().map(e => ({
+                id: e.id,
+                title: e.title,
+                start: e.startStr,
+                end: e.endStr,
+                backgroundColor: e.backgroundColor
+            }));
+            localStorage.setItem(storageKey, JSON.stringify(events));
+        }
+    </script>
+</body>
+</html>

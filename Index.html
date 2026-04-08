@@ -3,72 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VETMAX - Mensal</title>
+    <title>VETMAX - Cronograma Mensal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <style>
-        @page { size: landscape; margin: 0.5cm; }
+        /* Estilos para imitar o print enviado */
+        :root { --fc-border-color: #e2e8f0; }
+        
+        .fc-header-toolbar { margin-bottom: 20px !important; }
+        .fc-toolbar-title { font-size: 1.5rem !important; font-weight: 800; color: #334155; text-transform: capitalize; }
+        
+        /* Estilo dos botões superiores */
+        .fc-button-primary { background-color: #0891b2 !important; border-color: #0891b2 !important; font-weight: bold !important; text-transform: capitalize !important; }
+        .fc-button-active { background-color: #0e7490 !important; border-color: #0e7490 !important; }
+
+        /* Estilo das tarefas (Pontinho + Texto) */
+        .fc-daygrid-event { background: transparent !important; border: none !important; padding: 2px 5px !important; font-size: 0.85rem !important; color: #1e293b !important; font-weight: 600 !important; }
+        .fc-daygrid-event-dot { border-width: 4px !important; border-radius: 50% !important; margin-right: 6px !important; }
+        .fc-event:hover { background-color: #f1f5f9 !important; border-radius: 4px; cursor: pointer; }
 
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; }
-            .container { width: 100% !important; max-width: none !important; margin: 0 !important; }
-            
-            /* Ajusta o calendário para ocupar a folha toda */
-            .fc { max-width: 100% !important; height: 90vh !important; }
-            .fc-scroller { height: auto !important; overflow: visible !important; }
-            
-            /* Estilo das tarefas no modo Mês */
-            .fc-daygrid-event {
-                white-space: normal !important; /* Quebra linha */
-                align-items: flex-start !important;
-                border: 1px solid black !important;
-                background: #f8fafc !important;
-                color: black !important;
-                font-size: 9px !important; /* Fonte menor para caber no mês */
-                margin: 1px 0 !important;
-                line-height: 1.1 !important;
-            }
-            
-            .fc-event-time { display: none !important; } /* Esconde o horário repetido no ícone */
-            .fc-header-toolbar { margin-bottom: 5px !important; }
+            .fc-header-toolbar { margin-bottom: 10px !important; }
             .fc-button-group { display: none !important; }
+            .fc-daygrid-event { font-size: 10px !important; }
+            @page { size: landscape; margin: 0.5cm; }
         }
-
-        .fc-event { cursor: pointer; font-weight: bold; }
-        .fc-toolbar-title { font-weight: 900; text-transform: uppercase; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900">
+<body class="bg-slate-50 text-slate-900">
 
-    <header class="no-print bg-slate-800 text-white p-6 shadow-md">
+    <header class="no-print bg-slate-800 text-white p-5 shadow-lg">
         <div class="container mx-auto">
-            <h1 class="text-2xl font-black mb-4 tracking-tighter italic">VET<span class="text-cyan-400">MAX</span></h1>
+            <h1 class="text-xl font-black mb-4 flex items-center gap-2">
+                <span class="bg-cyan-500 text-slate-900 px-2 py-1 rounded">VET</span> MAX
+            </h1>
             
             <form id="taskForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-700 p-4 rounded-xl border border-slate-600">
                 <input type="hidden" id="editId">
                 <div class="md:col-span-2">
-                    <label class="block text-[10px] font-bold mb-1 uppercase text-slate-400 font-mono">Ambiente / Sala</label>
-                    <input type="text" id="title" placeholder="Ex: Limpeza Sala 1" class="w-full p-2 rounded bg-slate-800 border border-slate-500 text-white outline-none" required>
+                    <label class="block text-[10px] font-bold mb-1 uppercase text-slate-400">Ambiente / Tarefa</label>
+                    <input type="text" id="title" placeholder="Ex: 🧹 Limpeza Consultório" class="w-full p-2 rounded bg-slate-800 border border-slate-500 text-white outline-none focus:ring-2 focus:ring-cyan-500" required>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold mb-1 uppercase text-slate-400 font-mono">Horário</label>
+                    <label class="block text-[10px] font-bold mb-1 uppercase text-slate-400">Horário</label>
                     <input type="time" id="start" class="w-full p-2 rounded bg-slate-800 border border-slate-500 text-white" required>
-                    <input type="hidden" id="end" value="23:59">
                 </div>
                 <div class="flex items-end gap-2">
-                    <button type="submit" id="btnSubmit" class="flex-1 bg-cyan-500 text-slate-900 font-black py-2 rounded">SALVAR</button>
-                    <button type="button" id="btnCancel" onclick="resetForm()" class="hidden bg-slate-500 text-white px-3 py-2 rounded text-xs">X</button>
+                    <button type="submit" id="btnSubmit" class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-black py-2 rounded transition shadow-lg">SALVAR</button>
+                    <button type="button" id="btnCancel" onclick="resetForm()" class="hidden bg-slate-500 text-white px-3 py-2 rounded">X</button>
                 </div>
+                
                 <div class="md:col-span-4 flex flex-wrap gap-4 mt-2 border-t border-slate-600 pt-3">
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="1"> SEG</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="2"> TER</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="3"> QUA</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="4"> QUI</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="5"> SEX</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="6"> SÁB</label>
-                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="0"> DOM</label>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase mr-2">Repetir:</span>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="1"> Seg</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="2"> Ter</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="3"> Qua</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="4"> Qui</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="5"> Sex</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="6"> Sáb</label>
+                    <label class="flex items-center text-xs gap-1 cursor-pointer"><input type="checkbox" name="dow" value="0"> Dom</label>
                 </div>
             </form>
         </div>
@@ -76,46 +72,61 @@
 
     <main class="container mx-auto p-4">
         <div class="flex justify-between items-center mb-4 no-print">
-            <h2 class="font-black text-slate-800">Visualização Mensal</h2>
-            <button onclick="window.print()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-black shadow-lg">
-                🖨️ IMPRIMIR MÊS COMPLETO
-            </button>
+            <p class="text-xs text-slate-500 italic font-medium">Clique em uma tarefa para editar ou excluir.</p>
+            <button onclick="window.print()" class="bg-slate-800 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-black transition">🖨️ Imprimir Cronograma</button>
         </div>
 
-        <div class="bg-white p-4 rounded-xl shadow-2xl border border-slate-200">
+        <div class="bg-white p-6 rounded-2xl shadow-xl border border-slate-200">
             <div id="calendar"></div>
         </div>
     </main>
 
     <script>
         let calendar;
-        const storageKey = 'vetmax_mensal_v1';
+        const storageKey = 'vetmax_classic_v1';
+
+        // Cores automáticas para os pontinhos
+        const dotColors = ['#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#3b82f6'];
 
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             const savedData = JSON.parse(localStorage.getItem(storageKey)) || [];
 
             calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth', // FORÇA VISÃO MENSAL
+                initialView: 'dayGridMonth',
                 locale: 'pt-br',
                 height: 'auto',
-                headerToolbar: { left: '', center: 'title', right: '' },
-                dayMaxEvents: false, // Mostra TODAS as tarefas no quadrado, sem o "+2 more"
+                headerToolbar: {
+                    left: '',
+                    center: 'title',
+                    right: 'timeGridWeek,timeGridDay,dayGridMonth'
+                },
+                buttonText: { week: 'Semana', day: 'Dia', month: 'Mês' },
                 events: savedData,
+                dayMaxEvents: 5, 
                 eventClick: function(info) { handleEventClick(info.event); }
             });
             calendar.render();
         });
 
         function handleEventClick(event) {
-            const action = confirm(`"${event.title}"\n\nOK: Editar / Cancelar: Excluir`);
+            const action = confirm(`Deseja EDITAR a tarefa: "${event.title}"?\n(Clique em Cancelar para EXCLUIR)`);
             if (action) {
                 document.getElementById('editId').value = event.id;
-                document.getElementById('title').value = event.title;
-                document.getElementById('start').value = event._def.recurringDef?.typeData?.startTime ? new Date(event._def.recurringDef.typeData.startTime.milliseconds).toISOString().substr(11, 5) : "08:00";
+                // Remove o horário do título para carregar no input
+                document.getElementById('title').value = event.title.split(' ').slice(1).join(' ');
+                document.getElementById('start').value = event._def.recurringDef?.typeData?.startTime ? 
+                                                        new Date(event._def.recurringDef.typeData.startTime.milliseconds).toISOString().substr(11, 5) : "07:00";
+                
+                const dows = event._def.recurringDef?.typeData?.daysOfWeek || [];
+                document.querySelectorAll('input[name="dow"]').forEach(cb => cb.checked = dows.includes(parseInt(cb.value)));
+
                 document.getElementById('btnSubmit').innerText = "ATUALIZAR";
                 document.getElementById('btnCancel').classList.remove('hidden');
-            } else if(confirm("Remover?")) { event.remove(); save(); }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                if(confirm("Excluir definitivamente?")) { event.remove(); save(); }
+            }
         }
 
         function resetForm() {
@@ -128,14 +139,26 @@
         document.getElementById('taskForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const editId = document.getElementById('editId').value;
+            const time = document.getElementById('start').value;
+            const title = document.getElementById('title').value;
             const dows = Array.from(document.querySelectorAll('input[name="dow"]:checked')).map(el => parseInt(el.value));
+            
+            // Gerar cor aleatória para o ponto
+            const randomColor = dotColors[Math.floor(Math.random() * dotColors.length)];
+
             const eventData = {
                 id: editId || Date.now().toString(),
-                title: `${document.getElementById('start').value} - ${document.getElementById('title').value}`,
-                startTime: document.getElementById('start').value,
+                title: `${time} ${title}`,
+                startTime: time,
+                color: randomColor, // Cor do pontinho
                 daysOfWeek: dows.length > 0 ? dows : [new Date().getDay()]
             };
-            if (editId) { const old = calendar.getEventById(editId); if (old) old.remove(); }
+
+            if (editId) {
+                const old = calendar.getEventById(editId);
+                if (old) old.remove();
+            }
+
             calendar.addEvent(eventData);
             save();
             resetForm();
@@ -143,9 +166,12 @@
 
         function save() {
             const events = calendar.getEvents().map(e => ({
-                id: e.id, title: e.title,
-                startTime: e._def.recurringDef?.typeData?.startTime ? new Date(e._def.recurringDef.typeData.startTime.milliseconds).toISOString().substr(11, 5) : "08:00",
-                daysOfWeek: e._def.recurringDef?.typeData?.daysOfWeek || null
+                id: e.id,
+                title: e.title,
+                startTime: e._def.recurringDef?.typeData?.startTime ? 
+                           new Date(e._def.recurringDef.typeData.startTime.milliseconds).toISOString().substr(11, 5) : "07:00",
+                daysOfWeek: e._def.recurringDef?.typeData?.daysOfWeek || null,
+                color: e.backgroundColor
             }));
             localStorage.setItem(storageKey, JSON.stringify(events));
         }

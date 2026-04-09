@@ -3,193 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VETMAX - Gestão de Limpeza</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <title>VETMAX - Gestão Inteligente</title>
     <style>
-        :root { --fc-border-color: #e2e8f0; --fc-button-bg-color: #0891b2; --fc-button-active-bg-color: #0e7490; }
-        .fc-event { cursor: pointer; border: none; padding: 4px; font-size: 0.8em; border-radius: 6px; }
-        .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 800; color: #1e293b; text-transform: capitalize; }
-        .fc-timegrid-slot { height: 3em !important; }
-
+        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; --white: #ffffff; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg); margin: 0; padding: 20px; }
+        nav { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        button.nav-btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; background: var(--primary); color: white; }
+        .tab-content { display: none; max-width: 1100px; margin: 0 auto; background: var(--white); padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .active { display: block; }
+        h1 { color: var(--primary); text-align: center; margin-bottom: 5px; }
+        .calendar-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #ddd; border: 1px solid #ddd; }
+        .calendar-header { background: var(--primary); color: white; padding: 10px; text-align: center; font-weight: bold; font-size: 0.8em; }
+        .day { background: white; min-height: 110px; padding: 5px; }
+        .day-number { font-weight: bold; margin-bottom: 5px; color: #bdc3c7; }
+        .task { background: #e1f5fe; border-left: 3px solid var(--accent); font-size: 10px; padding: 2px 4px; margin-bottom: 2px; border-radius: 2px; overflow: hidden; text-overflow: ellipsis; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn-save { background: #27ae60; color: white; width: 100%; border: none; padding: 12px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .multi-days { display: flex; flex-wrap: wrap; gap: 10px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
+        .list-item { background: #fff; border: 1px solid #eee; margin-bottom: 10px; padding: 15px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-edit { background: #f39c12; color: white; border: none; padding: 8px; border-radius: 3px; cursor: pointer; margin-right: 5px;}
+        .btn-del { background: #e74c3c; color: white; border: none; padding: 8px; border-radius: 3px; cursor: pointer; }
+        
         @media print {
-            .no-print, nav, #tab-lancamento { display: none !important; }
-            #tab-consulta { display: block !important; width: 100% !important; border: none !important; }
-            @page { size: landscape; margin: 0.5cm; }
+            .nav-btn, #aba-lancamento, .calendar-controls, .btn-del, .btn-edit { display: none !important; }
+            @page { size: A4 landscape; margin: 0.5cm; }
+            .day { min-height: 130px; }
         }
-
-        .day-check { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 10px; font-weight: bold; background: #f1f5f9; padding: 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
-        .day-check:hover { background: #cffafe; }
-        input[type="checkbox"] { transform: scale(1.2); }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body>
 
-    <nav class="no-print bg-cyan-700 p-4 text-white shadow-xl mb-4">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-black tracking-tighter italic">VET<span class="text-cyan-300">MAX</span></h1>
-            <div class="flex gap-2">
-                <button onclick="switchTab('consulta')" class="text-sm font-bold bg-cyan-800 px-3 py-2 rounded-lg hover:bg-cyan-900 transition">Agenda</button>
-                <button onclick="prepareNew()" class="bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-black shadow-md hover:bg-emerald-600 transition">+ NOVO</button>
-            </div>
-        </div>
+    <h1>🐾 VETMAX</h1>
+    <nav>
+        <button class="nav-btn" onclick="showTab('aba-calendario')">📅 Calendário</button>
+        <button class="nav-btn" onclick="showTab('aba-lancamento')">📝 Lançamentos (Agrupados)</button>
+        <button class="nav-btn" onclick="window.print()">🖨️ Imprimir</button>
     </nav>
 
-    <main class="container mx-auto p-2 md:p-4">
-        
-        <section id="tab-consulta" class="bg-white p-3 md:p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div class="no-print flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-700">Cronograma de Higienização</h2>
-                    <p class="text-[10px] text-slate-500 font-medium italic">Clique para Concluir, Editar ou Excluir.</p>
-                </div>
-                <div class="flex gap-2 bg-slate-100 p-2 rounded-xl">
-                    <button onclick="window.print()" class="bg-slate-800 text-white px-4 py-1 rounded-lg text-[10px] font-black uppercase">🖨️ Imprimir</button>
-                </div>
+    <div id="aba-calendario" class="tab-content active">
+        <div class="calendar-controls">
+            <h3 id="month-display">Mês Ano</h3>
+            <div>
+                <select id="select-month" onchange="changeDate()"></select>
+                <select id="select-year" onchange="changeDate()"></select>
             </div>
-            <div id="calendar"></div>
-        </section>
+        </div>
+        <div class="calendar-grid" id="calendar"></div>
+    </div>
 
-        <section id="tab-lancamento" class="hidden max-w-xl mx-auto bg-white p-6 md:p-8 rounded-2xl shadow-2xl border border-slate-100">
-            <h2 id="formTitle" class="text-2xl font-black mb-6 text-cyan-700 text-center border-b pb-4">Registrar Atividade</h2>
-            <form id="limpezaForm" class="space-y-5">
-                <input type="hidden" id="editId">
-                <div>
-                    <label class="block text-sm font-bold mb-1 text-slate-600">O que será limpo?</label>
-                    <input type="text" id="taskTitle" placeholder="Ex: Recepção..." class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-cyan-500" required>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-bold mb-1 text-slate-600">Início</label>
-                        <input type="time" id="taskStart" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold mb-1 text-slate-600">Fim</label>
-                        <input type="time" id="taskEnd" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl" required>
-                    </div>
-                </div>
+    <div id="aba-lancamento" class="tab-content">
+        <h3 id="form-title">Configurar Atividade</h3>
+        <input type="hidden" id="edit-id">
+        
+        <div class="form-group">
+            <label>Nome da Atividade</label>
+            <input type="text" id="task-name" maxlength="20" placeholder="Ex: Limpeza de Ar">
+        </div>
 
-                <div>
-                    <label class="block text-sm font-bold mb-2 text-slate-600">Dias da Semana:</label>
-                    <div class="grid grid-cols-4 gap-2">
-                        <label class="day-check"><input type="checkbox" name="dow" value="1"> SEG</label>
-                        <label class="day-check"><input type="checkbox" name="dow" value="2"> TER</label>
-                        <label class="day-check"><input type="checkbox" name="dow" value="3"> QUA</label>
-                        <label class="day-check"><input type="checkbox" name="dow" value="4"> QUI</label>
-                        <label class="day-check"><input type="checkbox" name="dow" value="5"> SEX</label>
-                        <label class="day-check"><input type="checkbox" name="dow" value="6"> SAB</label>
-                        <label class="day-check"><input type="checkbox" name="dow" value="0"> DOM</label>
-                    </div>
-                </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap:10px">
+            <div class="form-group">
+                <label>Início da Regra (Data)</label>
+                <input type="date" id="task-date">
+            </div>
+            <div class="form-group">
+                <label>Horário</label>
+                <input type="time" id="task-time">
+            </div>
+        </div>
 
-                <div class="flex gap-4 pt-4">
-                    <button type="button" onclick="switchTab('consulta')" class="flex-1 py-3 bg-slate-200 rounded-xl font-black text-slate-600">CANCELAR</button>
-                    <button type="submit" id="btnSubmit" class="flex-1 py-3 bg-cyan-600 text-white rounded-xl font-black shadow-lg hover:bg-cyan-700 transition-all">SALVAR</button>
-                </div>
-                <button type="button" id="btnDelete" onclick="deleteCurrent()" class="hidden w-full mt-2 py-2 text-red-500 font-bold text-xs uppercase tracking-widest">Excluir permanentemente</button>
-            </form>
-        </section>
-    </main>
+        <div class="form-group">
+            <label>Dias da Semana (A atividade aparecerá nestes dias todo mês)</label>
+            <div class="multi-days">
+                <label><input type="checkbox" class="repeat-day" value="0"> Dom</label>
+                <label><input type="checkbox" class="repeat-day" value="1"> Seg</label>
+                <label><input type="checkbox" class="repeat-day" value="2"> Ter</label>
+                <label><input type="checkbox" class="repeat-day" value="3"> Qua</label>
+                <label><input type="checkbox" class="repeat-day" value="4"> Qui</label>
+                <label><input type="checkbox" class="repeat-day" value="5"> Sex</label>
+                <label><input type="checkbox" class="repeat-day" value="6"> Sáb</label>
+            </div>
+        </div>
+
+        <button class="btn-save" id="btn-save" onclick="saveTask()">Confirmar Atividade</button>
+        <button class="btn-del" id="btn-cancel-edit" style="display:none; width:100%; margin-top:10px;" onclick="resetForm()">Cancelar Edição</button>
+
+        <hr style="margin: 30px 0;">
+        <h3>Suas Regras de Atividades</h3>
+        <div id="task-list"></div>
+    </div>
 
     <script>
-        let calendar;
-        const storageKey = 'vetmax_final_v3';
+        // Agora o dado é salvo como uma "Regra" e não como dias soltos
+        let rules = JSON.parse(localStorage.getItem('vetmax_rules')) || [];
+        let currentViewDate = new Date();
+        const months = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        const daysWeek = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
-            const savedEvents = JSON.parse(localStorage.getItem(storageKey)) || [];
+        function initSelectors() {
+            const mSel = document.getElementById('select-month');
+            const ySel = document.getElementById('select-year');
+            months.forEach((m, i) => mSel.innerHTML += `<option value="${i}" ${i === currentViewDate.getMonth() ? 'selected' : ''}>${m}</option>`);
+            for(let y = 2025; y <= 2027; y++) ySel.innerHTML += `<option value="${y}" ${y === currentViewDate.getFullYear() ? 'selected' : ''}>${y}</option>`;
+        }
+
+        function changeDate() {
+            currentViewDate = new Date(document.getElementById('select-year').value, document.getElementById('select-month').value, 1);
+            renderCalendar();
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if(tabId === 'aba-calendario') renderCalendar();
+            renderTaskList();
+        }
+
+        function saveTask() {
+            const name = document.getElementById('task-name').value;
+            const startDate = document.getElementById('task-date').value;
+            const time = document.getElementById('task-time').value;
+            const days = Array.from(document.querySelectorAll('.repeat-day:checked')).map(cb => parseInt(cb.value));
+            const editId = document.getElementById('edit-id').value;
+
+            if(!name || !startDate || !time) return alert("Preencha os campos!");
+
+            const newRule = { id: editId ? parseInt(editId) : Date.now(), name, startDate, time, days };
+
+            if(editId) {
+                const idx = rules.findIndex(r => r.id == editId);
+                rules[idx] = newRule;
+            } else {
+                rules.push(newRule);
+            }
+
+            localStorage.setItem('vetmax_rules', JSON.stringify(rules));
+            resetForm();
+            renderTaskList();
+            alert("Regra de atividade salva!");
+        }
+
+        function editTask(id) {
+            const rule = rules.find(r => r.id === id);
+            document.getElementById('task-name').value = rule.name;
+            document.getElementById('task-date').value = rule.startDate;
+            document.getElementById('task-time').value = rule.time;
+            document.getElementById('edit-id').value = rule.id;
             
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'pt-br',
-                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
-                events: savedEvents,
-                eventClick: function(info) {
-                    const menu = confirm(`ATIVIDADE: ${info.event.title}\n\nClique OK para concluir/aguardar.\nClique CANCELAR para EDITAR os dados.`);
-                    if (menu) {
-                        const isDone = info.event.backgroundColor === '#10b981' || info.event.backgroundColor === 'rgb(16, 185, 129)';
-                        info.event.setProp('backgroundColor', isDone ? '#f59e0b' : '#10b981');
-                        saveToLocal();
-                    } else {
-                        loadEventToForm(info.event);
-                    }
-                }
+            document.querySelectorAll('.repeat-day').forEach(cb => {
+                cb.checked = rule.days.includes(parseInt(cb.value));
             });
-            calendar.render();
-        });
 
-        function switchTab(tab) {
-            document.getElementById('tab-consulta').classList.toggle('hidden', tab !== 'consulta');
-            document.getElementById('tab-lancamento').classList.toggle('hidden', tab !== 'lancamento');
-            if(tab === 'consulta') setTimeout(() => { calendar.render(); calendar.updateSize(); }, 50);
+            document.getElementById('form-title').innerText = "Editando Regra";
+            document.getElementById('btn-save').innerText = "Salvar Alterações em Todos os Dias";
+            document.getElementById('btn-cancel-edit').style.display = "block";
+            showTab('aba-lancamento');
         }
 
-        function prepareNew() {
-            document.getElementById('limpezaForm').reset();
-            document.getElementById('editId').value = "";
-            document.getElementById('formTitle').innerText = "Registrar Atividade";
-            document.getElementById('btnSubmit').innerText = "SALVAR NOVO";
-            document.getElementById('btnDelete').classList.add('hidden');
-            switchTab('lancamento');
-        }
-
-        function loadEventToForm(event) {
-            document.getElementById('editId').value = event.id;
-            document.getElementById('taskTitle').value = event.title;
-            document.getElementById('taskStart').value = event._def.recurringDef?.typeData?.startTime ? new Date(event._def.recurringDef.typeData.startTime.milliseconds).toISOString().substr(11, 5) : "";
-            document.getElementById('taskEnd').value = event._def.recurringDef?.typeData?.endTime ? new Date(event._def.recurringDef.typeData.endTime.milliseconds).toISOString().substr(11, 5) : "";
-            
-            const dows = event._def.recurringDef?.typeData?.daysOfWeek || [];
-            document.querySelectorAll('input[name="dow"]').forEach(cb => cb.checked = dows.includes(parseInt(cb.value)));
-
-            document.getElementById('formTitle').innerText = "Editar Atividade";
-            document.getElementById('btnSubmit').innerText = "ATUALIZAR DADOS";
-            document.getElementById('btnDelete').classList.remove('hidden');
-            switchTab('lancamento');
-        }
-
-        document.getElementById('limpezaForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const editId = document.getElementById('editId').value;
-            const dows = Array.from(document.querySelectorAll('input[name="dow"]:checked')).map(el => parseInt(el.value));
-            
-            if (editId) { calendar.getEventById(editId).remove(); }
-
-            const newEvent = {
-                id: editId || Date.now().toString(),
-                title: document.getElementById('taskTitle').value,
-                backgroundColor: '#f59e0b',
-                startTime: document.getElementById('taskStart').value,
-                endTime: document.getElementById('taskEnd').value,
-                daysOfWeek: dows.length > 0 ? dows : null
-            };
-
-            calendar.addEvent(newEvent);
-            saveToLocal();
-            switchTab('consulta');
-        });
-
-        function deleteCurrent() {
-            const id = document.getElementById('editId').value;
-            if (id && confirm("Tem certeza que deseja excluir esta atividade de todos os dias?")) {
-                calendar.getEventById(id).remove();
-                saveToLocal();
-                switchTab('consulta');
+        function deleteTask(id) {
+            if(confirm("Isso excluirá esta atividade de TODOS os dias do calendário. Confirmar?")) {
+                rules = rules.filter(r => r.id !== id);
+                localStorage.setItem('vetmax_rules', JSON.stringify(rules));
+                renderTaskList();
             }
         }
 
-        function saveToLocal() {
-            const events = calendar.getEvents().map(e => ({
-                id: e.id, title: e.title,
-                startTime: e._def.recurringDef?.typeData?.startTime ? new Date(e._def.recurringDef.typeData.startTime.milliseconds).toISOString().substr(11, 5) : null,
-                endTime: e._def.recurringDef?.typeData?.endTime ? new Date(e._def.recurringDef.typeData.endTime.milliseconds).toISOString().substr(11, 5) : null,
-                daysOfWeek: e._def.recurringDef?.typeData?.daysOfWeek || null,
-                backgroundColor: e.backgroundColor
-            }));
-            localStorage.setItem(storageKey, JSON.stringify(events));
+        function resetForm() {
+            document.getElementById('task-name').value = '';
+            document.getElementById('task-date').value = '';
+            document.getElementById('task-time').value = '';
+            document.getElementById('edit-id').value = '';
+            document.querySelectorAll('.repeat-day').forEach(cb => cb.checked = false);
+            document.getElementById('form-title').innerText = "Configurar Atividade";
+            document.getElementById('btn-save').innerText = "Confirmar Atividade";
+            document.getElementById('btn-cancel-edit').style.display = "none";
         }
+
+        function renderTaskList() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = rules.map(r => `
+                <div class="list-item">
+                    <div>
+                        <strong>${r.name}</strong><br>
+                        <small>Horário: ${r.time}h | Dias: ${r.days.length > 0 ? r.days.map(d => daysWeek[d]).join(', ') : 'Data Única'}</small>
+                    </div>
+                    <div>
+                        <button class="btn-edit" onclick="editTask(${r.id})">✏️ Editar</button>
+                        <button class="btn-del" onclick="deleteTask(${r.id})">🗑️ Excluir Regra</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCalendar() {
+            const cal = document.getElementById('calendar');
+            cal.innerHTML = '';
+            const year = currentViewDate.getFullYear();
+            const month = currentViewDate.getMonth();
+            document.getElementById('month-display').innerText = `${months[month]} de ${year}`;
+
+            ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].forEach(d => cal.innerHTML += `<div class="calendar-header">${d}</div>`);
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            for(let i=0; i < firstDay; i++) cal.innerHTML += `<div class="day"></div>`;
+
+            for(let day=1; day <= totalDays; day++) {
+                const dateObj = new Date(year, month, day);
+                const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayOfWeek = dateObj.getDay();
+
+                // Filtrar regras que se aplicam a este dia
+                const dayTasks = rules.filter(r => {
+                    // Se for a data exata da regra
+                    if(r.startDate === dateStr) return true;
+                    // Se o dia da semana estiver na regra E a data atual for depois da data de início
+                    return r.days.includes(dayOfWeek) && dateStr >= r.startDate;
+                }).sort((a,b) => a.time.localeCompare(b.time));
+
+                let htmlDay = `<div class="day"><div class="day-number">${day}</div>`;
+                dayTasks.forEach(t => {
+                    htmlDay += `<div class="task">${t.time} ${t.name}</div>`;
+                });
+                htmlDay += `</div>`;
+                cal.innerHTML += htmlDay;
+            }
+        }
+
+        initSelectors();
+        renderCalendar();
+        renderTaskList();
     </script>
 </body>
 </html>
